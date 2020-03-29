@@ -1,4 +1,4 @@
-import { modifyStatByDelta } from "./types";
+import { modifyStatByDelta } from "../types";
 
 describe("test ComputeStats", function() {
   it("returns a stat that is normal without modifier", function() {

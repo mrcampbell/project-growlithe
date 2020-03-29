@@ -78,7 +78,6 @@ export function ComputeStats(original:BattleStatGroup, delta:BattleStatGroup): C
 }
 
 export function modifyStatByDelta(stat: number, delta: number): number {
-
   if (delta > 6 || delta < -6) {
     throw `argument out of range - delta: ${delta}`;
   }
