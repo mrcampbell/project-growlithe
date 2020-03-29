@@ -1,13 +1,11 @@
 /**
  * Randomly shuffle an array
  * https://stackoverflow.com/a/2450976/1293256
- * @param  {Array} array The array to shuffle
- * @return {String}      The first item in the shuffled array
  */
-export default (array) => {
+export default (array: any[]): any[] => {
 
 	var currentIndex = array.length;
-	var temporaryValue, randomIndex;
+	var temporaryValue: any, randomIndex: number;
 
 	// While there remain elements to shuffle...
 	while (0 !== currentIndex) {
@@ -22,5 +20,4 @@ export default (array) => {
 	}
 
 	return array;
-
 };

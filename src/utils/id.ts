@@ -15,7 +15,7 @@
 //     var privateName = ID();
 //     var o = { 'public': 'foo' };
 //     o[privateName] = 'bar';
-export default function (prefix) {
+export default function (prefix: string): string {
   // Math.random should be unique because of its seeding algorithm.
   // Convert it to base 36 (numbers + letters), and grab the first 9 characters
   // after the decimal.

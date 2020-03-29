@@ -1,1 +1,1 @@
-export let randBetweenInclusive = (min, max) =>  Math.floor(Math.random() * max) + min
+export let randBetweenInclusive = (min: number, max: number): number =>  Math.floor(Math.random() * max) + min
