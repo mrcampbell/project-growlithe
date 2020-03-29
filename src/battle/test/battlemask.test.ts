@@ -38,7 +38,6 @@ const samplePokemon = {
 
 describe("BattleMask", function() {
   it("is created successfully", async function() {
-   
     const mask: BattleMask = await getBattleMask(samplePokemon)
     expect(mask.moves[0].id).toEqual(99)
     expect(mask.moves[1].id).toEqual(52)

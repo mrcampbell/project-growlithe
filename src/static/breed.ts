@@ -2,7 +2,7 @@ import { Breed, StatGroup, MoveLearn } from "../pokemon/types"
 
 const file = require('./read-file')
 
-module.exports.getBreed = async (id, version_group) => {
+export let getBreed = async (id, version_group) => {
   if (id === 0)  {
     throw Error("no breed with id 0")
   }
@@ -11,8 +11,8 @@ module.exports.getBreed = async (id, version_group) => {
 }
 
 function summarize(raw, version_group) {
-  const summary = summarizeRawPokemon(raw);
-  const moves = getMovesFromRawPokemon(raw, version_group)
+  const summary = summarizeRawBreed(raw);
+  const moves = getMovesFromRawBreed(raw, version_group)
   summary.move_learns = moves;
   summary.version_group = version_group;
   return summary;
@@ -23,7 +23,7 @@ function getBreedFromFile(id) {
   return data;
 }
 
-function summarizeRawPokemon(p) {
+function summarizeRawBreed(p: any): Breed {
   let result = {} as Breed;
   result.stats = {} as StatGroup;
   result.stats.speed = p.stats[0].base_stat
@@ -47,7 +47,7 @@ function summarizeRawPokemon(p) {
   return result
 }
 
-function getMovesFromRawPokemon(p, version_group): MoveLearn[] {
+function getMovesFromRawBreed(p, version_group): MoveLearn[] {
   let moves = [];
   const moveNumberRE = /move\/(\d+)\//
   let matches = [];

@@ -1,7 +1,7 @@
 import { randBetweenInclusive } from "../utils/random"
-import { getBreed } from "../static/breed"
 import id from "../utils/id";
 import shuffle from "../utils/shuffle";
+import { getBreed } from "../static/breed";
 const MAX_IV = 15;
 
 export async function create(breedID, level, versionGroup) {
@@ -60,7 +60,7 @@ export async function create(breedID, level, versionGroup) {
   })
 }
 
-function calcStat(level, base, iv, ev) {
+function calcStat(level: number, base: number, iv: number, ev: number): number {
 	let a, b, c;
 	a = Math.floor(ev / 4)
 	b = ((2 * base) + iv + a) * level
@@ -72,7 +72,7 @@ function calcStat(level, base, iv, ev) {
 	return c
 }
 
-function calcHP(level, base, iv, ev) {
+function calcHP(level: number, base: number, iv: number, ev: number): number {
 	return calcStat(level, base, iv, ev) + 5 + level
 }
 
