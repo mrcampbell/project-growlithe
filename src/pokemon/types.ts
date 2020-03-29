@@ -1,3 +1,24 @@
+export interface Breed {
+  id: number
+  stats: StatGroup;
+  base_experience: number
+  height: number
+  name: string;
+  species: string
+  type_one: string;
+  type_two: string;
+  abilities: any[];
+  move_learns: MoveLearn[];
+  version_group: string;
+}
+
+export interface MoveLearn {
+  id: string;
+  name: string;
+  method: string;
+  level: string;
+}
+
 export interface Pokemon {
   id: string;
   breed_id: number;
@@ -10,6 +31,36 @@ export interface Pokemon {
   move_two_id: number;
   move_three_id: number;
   move_four_id: number;
+}
+
+export interface Move {
+  id: number;
+  accuracy: number;
+  damage_class: string;
+  effect_chance: number | null;
+  effect_entry: string;
+  effect_entry_short: string;
+  flavor_text: string;
+  generation: string;
+  ailment: string;
+  ailment_chance: number;
+  category: string;
+  critical_hit_rate: number;
+  drain: number;
+  flinch_chance: number;
+  healing: number;
+  max_hits: number;
+  max_turns: number;
+  min_hits: number;
+  min_turns: number;
+  stat_chance: number;
+  stat_changes: any
+  name: string;
+  target: string
+  type: string
+  power: number;
+  priority: number;
+  pp: number;
 }
 
 export interface StatGroup {

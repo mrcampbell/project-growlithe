@@ -1,3 +1,5 @@
+import { Breed, StatGroup, MoveLearn } from "../pokemon/types"
+
 const file = require('./read-file')
 
 module.exports.getBreed = async (id, version_group) => {
@@ -22,8 +24,8 @@ function getBreedFromFile(id) {
 }
 
 function summarizeRawPokemon(p) {
-  let result = {};
-  result.stats = {};
+  let result = {} as Breed;
+  result.stats = {} as StatGroup;
   result.stats.speed = p.stats[0].base_stat
   result.stats.special_defense = p.stats[1].base_stat
   result.stats.special_attack = p.stats[2].base_stat
@@ -45,7 +47,7 @@ function summarizeRawPokemon(p) {
   return result
 }
 
-function getMovesFromRawPokemon(p, version_group) {
+function getMovesFromRawPokemon(p, version_group): MoveLearn[] {
   let moves = [];
   const moveNumberRE = /move\/(\d+)\//
   let matches = [];
@@ -60,7 +62,7 @@ function getMovesFromRawPokemon(p, version_group) {
           id = parseInt(matches[1])
         }
         
-        moves.push({id, name: m.move.name, method: vgd.move_learn_method.name, level: vgd.level_learned_at, url})
+        moves.push({id, name: m.move.name, method: vgd.move_learn_method.name, level: vgd.level_learned_at})
       }
     })
   })

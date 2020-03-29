@@ -28,21 +28,35 @@ interface UserTurn {
 }
 
 export class BattleMask {
-  readonly name: string;
-  readonly level: number;
-  readonly hp: HP;
+  constructor(
+    public readonly name: string,
+    public readonly level: number,
+    public readonly hp: HP,
+    public readonly moves: Move[],
+    public readonly original_stats: BattleStatGroup,
+    ) { 
+      this.stat_deltas = {
+        hp: 0,
+        attack: 0,
+        defense: 0,
+        special_attack: 0,
+        special_defense: 0,
+        speed: 0,
+        accuracy: 0,
+        evasion: 0
+      } as BattleStatGroup
+    }    
 
-  moves: Move[];
-  get moveCount(): number {
+  public moveCount(): number {
     return this.moves.length;
   }
 
-  private stat_deltas: BattleStatGroup;
-  private original_stats: BattleStatGroup;
-  get stats(): ComputedStatGroup {
+  stat_deltas: BattleStatGroup; // todo: getters and setters. protect that shiz
+
+
+  public stats(): ComputedStatGroup {
     return ComputeStats(this.original_stats, this.stat_deltas);
   }
-
 }
 
 export interface BattleStatGroup {
@@ -63,44 +77,6 @@ export interface ComputedStatGroup {
   speed: number;
   accuracy: number;
   evasion: number;
-}
-
-export function ComputeStats(original:BattleStatGroup, delta:BattleStatGroup): ComputedStatGroup {
-  return {    
-    attack: modifyStatByDelta(original.attack, delta.attack),
-    defense: modifyStatByDelta(original.defense, delta.defense),
-    special_attack: modifyStatByDelta(original.special_attack, delta.special_attack),
-    special_defense: modifyStatByDelta(original.special_defense, delta.special_defense),
-    speed: modifyStatByDelta(original.speed, delta.speed),
-    accuracy: modifyStatByDelta(original.accuracy, delta.accuracy),
-    evasion: modifyStatByDelta(original.evasion, delta.evasion),
-  };
-}
-
-export function modifyStatByDelta(stat: number, delta: number): number {
-  if (delta > 6 || delta < -6) {
-    throw `argument out of range - delta: ${delta}`;
-  }
-
-  let modifier = 1;
-
-  switch (delta) {
-    case -6: modifier = 2/8; break;
-    case -5: modifier = 2/7; break;
-    case -4: modifier = 2/6; break;
-    case -3: modifier = 2/5; break;
-    case -2: modifier = 2/4; break;
-    case -1: modifier = 2/3; break;
-    case 0: modifier = 2/2; break;
-    case 1: modifier = 3/2; break;
-    case 2: modifier = 4/2; break;
-    case 3: modifier = 5/2; break;
-    case 4: modifier = 6/2; break;
-    case 5: modifier = 7/2; break;
-    case 6: modifier = 8/2; break;
-  }
-
-  return stat * modifier;
 }
 
 export interface BattleStatGroup {
@@ -159,3 +135,41 @@ interface BattleState {
 }
 
 class Battle {}
+
+export function ComputeStats(original:BattleStatGroup, delta:BattleStatGroup): ComputedStatGroup {
+  return {    
+    attack: modifyStatByDelta(original.attack, delta.attack),
+    defense: modifyStatByDelta(original.defense, delta.defense),
+    special_attack: modifyStatByDelta(original.special_attack, delta.special_attack),
+    special_defense: modifyStatByDelta(original.special_defense, delta.special_defense),
+    speed: modifyStatByDelta(original.speed, delta.speed),
+    accuracy: modifyStatByDelta(original.accuracy, delta.accuracy),
+    evasion: modifyStatByDelta(original.evasion, delta.evasion),
+  };
+}
+
+export function modifyStatByDelta(stat: number, delta: number): number {
+  if (delta > 6 || delta < -6) {
+    throw `argument out of range - delta: ${delta}`;
+  }
+
+  let modifier = 1;
+
+  switch (delta) {
+    case -6: modifier = 2/8; break;
+    case -5: modifier = 2/7; break;
+    case -4: modifier = 2/6; break;
+    case -3: modifier = 2/5; break;
+    case -2: modifier = 2/4; break;
+    case -1: modifier = 2/3; break;
+    case 0: modifier = 2/2; break;
+    case 1: modifier = 3/2; break;
+    case 2: modifier = 4/2; break;
+    case 3: modifier = 5/2; break;
+    case 4: modifier = 6/2; break;
+    case 5: modifier = 7/2; break;
+    case 6: modifier = 8/2; break;
+  }
+
+  return stat * modifier;
+}

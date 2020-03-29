@@ -1,6 +1,9 @@
+import { Move } from "../pokemon/types"
+
 const file = require('./read-file')
 
 const emptyMove = {
+  "id": 0,
   "accuracy": 0,
   "damage_class": "special",
   "effect_chance": null,
@@ -22,10 +25,14 @@ const emptyMove = {
   "stat_chance": 0,
   "name": "None",
   "target": "selected-pokemon",
-  "type": "normal"
+  "type": "normal",
+  power: 0,
+  priority: 0,
+  pp: 0,
+  stat_changes: [],
 }
 
-module.exports.getMove = async (id) => {
+module.exports.getMove = async (id): Promise<Move> => {
   if (id === 0 || !id) {
     return emptyMove
   }
@@ -38,8 +45,8 @@ function getMoveFromFile(id) {
   return data;
 }
 
-function summarize(m) {
-  const result = {};
+function summarize(m): Move {
+  const result = {} as Move;
   result.id = m.id;
   result.accuracy = m.accuracy;
   result.damage_class = m.damage_class.name;

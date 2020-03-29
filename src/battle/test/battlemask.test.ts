@@ -1,4 +1,5 @@
 import { getBattleMask } from "../battlemask";
+import { BattleMask } from "../types";
 
 const samplePokemon = {
   id: "p_zxshplyr1",
@@ -35,16 +36,25 @@ const samplePokemon = {
   move_four_id: 45
 };
 
-describe("test BattleMask", function() {
-  it("battle mask runs successfully", async function() {
+describe("BattleMask", function() {
+  it("is created successfully", async function() {
    
-    const mask = await getBattleMask(samplePokemon)
-    console.log(mask)
+    const mask: BattleMask = await getBattleMask(samplePokemon)
     expect(mask.moves[0].id).toEqual(99)
     expect(mask.moves[1].id).toEqual(52)
     expect(mask.moves[2].id).toEqual(63)
     expect(mask.moves[3].id).toEqual(45)
     expect(mask.hp.max).toEqual(67)
     expect(mask.hp.current).toEqual(67)
+    expect(mask.stats().attack).toEqual(39)
   });
+
+  it("it's stats reflect changes", async function() {
+    const mask: BattleMask = await getBattleMask(samplePokemon)
+    mask.stat_deltas.defense -= 1; 
+    mask.stat_deltas.attack += 4;
+    expect(mask.stats().defense).toEqual(36 * 2/3)
+    expect(mask.stats().attack).toEqual(39 * 6/2)
+  });
+
 });
