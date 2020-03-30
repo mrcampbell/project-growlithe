@@ -1,11 +1,11 @@
-import { getBattleMask } from "../battlemask";
-import { BattleMask } from "../types";
-import { charmeleon } from "./sample-data";
+import { getBattleMask, BattleMask } from "../battlemask";
+import { charmeleon, ivysaur } from "./sample-data";
 import { create } from '../../pokemon/create'
 
 describe("BattleMask", function() {
   it("is created successfully", async function() {
-    const mask: BattleMask = await getBattleMask(charmeleon)
+    const mask: BattleMask = await getBattleMask(ivysaur)
+    console.log(JSON.stringify(mask))
     expect(mask.moves[0].id).toEqual(99)
     expect(mask.moves[1].id).toEqual(52)
     expect(mask.moves[2].id).toEqual(63)

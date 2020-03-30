@@ -1,6 +1,30 @@
-import { BattleMask, UserTurn, UserInputType } from "./types";
-import { Pokemon } from "../pokemon/types";
-import { getBattleMask } from "./battlemask";
+import { UserTurn, UserTurnType, AttackInput } from "./types";
+import { Pokemon, Move, ItemUsed, StatGroup } from "../pokemon/types";
+import { getBattleMask, BattleMask, BattleStatGroup } from "./battlemask";
+import { Type, TypeAdvantage, getTypeAdvantage } from '../pokemon/elementaltype';
+import { randBetweenInclusive } from "../utils/random";
+
+export class UserTurnResult {
+  TurnType: UserTurnType;
+  MoveUsed: Move;
+  MoveResult: MoveResult;
+  ItemUsed: ItemUsed;
+  AttemptToFlee: boolean;
+}
+
+export class MoveResult {
+  damageToAttacker: number;
+  statChangesToAttacker: BattleStatGroup;
+
+  damageToDefender: number;
+  statChangesToDefender: BattleStatGroup;
+}
+
+export class RoundTurnResult {
+  allyMovesFirst: boolean;
+  allyTurnResult: UserTurnResult;
+  enemyTurnResult: UserTurnResult;
+}
 
 export class Battle {
   ally: BattleMask;
@@ -12,20 +36,163 @@ export class Battle {
     this.enemy = await getBattleMask(this.pEnemy);
   }
 
-  processRound(allyTurn: UserTurn, enemyTurn: UserTurn): any {
-    switch (allyTurn.type) {
-      case UserInputType.ATTACK: {
-        return "A"
-      }; break;
-      case UserInputType.SWAP_POKEMON: {
-        return "S"
-      }; break;
-      case UserInputType.USE_ITEM: {
-        return "U"
-      }; break;
-      case UserInputType.ATTEMPT_TO_RUN: {
-        return "R"
-      }; break;
+  getRoundResult(allyTurn: UserTurn, enemyTurn: UserTurn): RoundTurnResult {
+    const result = {
+      allyTurnResult: {} as UserTurnResult,
+      enemyTurnResult: {} as UserTurnResult
+    } as RoundTurnResult;
+    result.allyTurnResult.TurnType = allyTurn.type;
+    result.enemyTurnResult.TurnType = enemyTurn.type;
+
+    console.log(allyTurn, enemyTurn);
+
+    result.allyTurnResult = Battle.getUserTurnResult(
+      allyTurn,
+      this.ally,
+      this.enemy
+    );
+    result.enemyTurnResult = Battle.getUserTurnResult(
+      enemyTurn,
+      this.enemy,
+      this.ally
+    );
+
+    return result;
+  }
+
+  static getUserTurnResult(
+    turn: UserTurn,
+    attacker: BattleMask,
+    defender: BattleMask
+  ): UserTurnResult {
+    const result = {} as UserTurnResult;
+    switch (turn.type) {
+      case UserTurnType.ATTACK:
+        {
+          let moveInput = turn.input as AttackInput;
+          let moveUsed = attacker.moves[moveInput.MoveIndex]; // todo: error check
+          result.MoveResult = Battle.getMoveResult(
+            attacker,
+            defender,
+            moveUsed
+          );
+        }
+        break;
+      case UserTurnType.SWAP_POKEMON:
+        {
+        }
+        break;
+      case UserTurnType.USE_ITEM:
+        {
+        }
+        break;
+      case UserTurnType.ATTEMPT_TO_RUN:
+        {
+        }
+        break;
     }
+    return result;
+  }
+
+  static getMoveResult(
+    attacker: BattleMask,
+    defender: BattleMask,
+    move: Move
+  ): MoveResult {
+    return {
+      damageToAttacker: Battle.calculateDamageToAttacker(
+        attacker,
+        defender,
+        move
+      ),
+      damageToDefender: Battle.calculateDamageToDefender(
+        move.power,
+        move.type,
+        attacker.type_one,
+        attacker.type_two,
+        attacker.level,
+        attacker.stats().attack,
+        defender.type_one,
+        defender.type_two,
+        defender.stats().defense,
+        randBetweenInclusive(0, 100),
+        randBetweenInclusive(85, 100),
+      ), // todo: add special atk/def if special
+      statChangesToAttacker: Battle.calculateStatChangeToAttacker(
+        attacker,
+        defender,
+        move
+      ),
+      statChangesToDefender: Battle.calculateStatChangeToDefender(
+        attacker,
+        defender,
+        move
+      )
+    } as MoveResult;
+  }
+
+  static calculateDamageToDefender(
+    movePower: number,
+    moveType: Type,
+    attackerTypeOne: Type,
+    attackerTypeTwo: Type,
+    attackerLevel: number,
+    attackerAttack: number,
+    defenderTypeOne: Type,
+    defenderTypeTwo: Type,
+    defenderDefense: number,
+    criticalRandom: number,
+    randomModifier: number,
+  ): number {
+    if (!movePower || movePower === 0) {
+      return 0;
+    }
+
+    if (randomModifier > 100 || randomModifier < 85) {
+      throw "random modifier out of range (85..100 inclusive)"
+    }
+
+    // todo: highest modifier (85.."100") is off
+    const a = Math.round((Math.round(2 * attackerLevel) / 5)) + 2;
+    const b = Math.round(Math.round(movePower * attackerAttack) / defenderDefense);
+    const initial = Math.floor(Math.round(a * b) / 50) + 2;
+
+    const critical = (criticalRandom <= 7) ? 2.0 : 1.0;
+    const stab = (attackerTypeOne === moveType || attackerTypeTwo === moveType) ? 1.5 : 1;
+    const typeAdvantageOne = getTypeAdvantage(moveType, defenderTypeOne)
+    const typeAdvantageTwo = getTypeAdvantage(moveType, defenderTypeTwo)
+    const typeAdvantage = (typeAdvantageOne * typeAdvantageTwo);
+    const modifier = critical * (randomModifier/100) * stab * typeAdvantage;
+    console.log({critical, randomModifier, stab, typeAdvantage, modifier})
+    return Math.round(initial * modifier);
+  }
+
+  // todo: calculate recoil
+  static calculateDamageToAttacker(
+    attacker: BattleMask,
+    defender: BattleMask,
+    move: Move
+  ): number {
+    return 0;
+  }
+
+  static calculateStatChangeToDefender(
+    attacker: BattleMask,
+    defender: BattleMask,
+    move: Move
+  ): BattleStatGroup {
+    if (move.stat_chance === 0 && move.stat_changes.length > 0) {
+      console.log("yep");
+    }
+
+    return {} as BattleStatGroup;
+  }
+
+  static calculateStatChangeToAttacker(
+    attacker: BattleMask,
+    defender: BattleMask,
+    move: Move
+  ): BattleStatGroup {
+    return {} as BattleStatGroup;
   }
 }

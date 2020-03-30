@@ -1,3 +1,14 @@
+import { Type } from "./elementaltype";
+
+export interface Item {
+
+}
+
+export interface ItemUsed {
+  item_id: string;
+  pokemon_id: string;
+}
+
 export interface Breed {
   id: number
   stats: StatGroup;
@@ -22,6 +33,8 @@ export interface MoveLearn {
 export interface Pokemon {
   id: string;
   breed_id: number;
+  type_one: Type;
+  type_two: Type;
   iv: StatGroup;
   ev: StatGroup;
   stats: StatGroup;
@@ -57,7 +70,7 @@ export interface Move {
   stat_changes: any
   name: string;
   target: string
-  type: string
+  type: Type;
   power: number;
   priority: number;
   pp: number;

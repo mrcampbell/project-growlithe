@@ -1,4 +1,5 @@
 import { Move } from "../pokemon/types"
+import { Type } from "../pokemon/elementaltype"
 
 const file = require('./read-file')
 
@@ -25,7 +26,7 @@ const emptyMove = {
   stat_chance: 0,
   name: "None",
   target: "selected-pokemon",
-  type: "normal",
+  type: Type.NONE,
   power: 0,
   priority: 0,
   pp: 0,
@@ -87,7 +88,7 @@ function summarize(m): Move {
   result.priority = m.priority;
   result.stat_changes = m.stat_changes;
   result.target = m.target.name;
-  result.type = m.type.name;
+  result.type = Type[m.type.name.toUpperCase()]; // todo: error check
 
   return result;
 }

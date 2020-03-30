@@ -2,6 +2,7 @@ import { randBetweenInclusive } from "../utils/random"
 import id from "../utils/id";
 import shuffle from "../utils/shuffle";
 import { getBreed } from "../static/breed";
+import { Type } from "./elementaltype";
 const MAX_IV = 15;
 
 export async function create(breedID, level, versionGroup) {
@@ -42,6 +43,8 @@ export async function create(breedID, level, versionGroup) {
       speed: calcStat(level, breed.stats.speed, iv.speed, ev.speed),
     }
 
+    console.log(breed.type_one)
+
     const p = {
       id: id('p'),
       breed_id: breedID,
@@ -54,6 +57,8 @@ export async function create(breedID, level, versionGroup) {
       move_two_id: moves.length >= 2 ? moves[1] : 0,
       move_three_id: moves.length >= 3 ? moves[2] : 0,
       move_four_id: moves.length >= 4 ? moves[3] : 0,
+      type_one: Type[breed.type_one.toUpperCase()],
+      type_two: Type[breed.type_two.toUpperCase()],
     }
 
     resolve(p)

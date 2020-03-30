@@ -38,8 +38,10 @@ function summarizeRawBreed(p: any): Breed {
   result.name = p.name;
   result.species = p.species.name;
   result.type_one = p.types.length == 2 ? p.types[1].type.name : p.types[0].type.name;
-  result.type_two = p.types.length == 2 ? p.types[0].type.name : undefined;
+  result.type_two = p.types.length == 2 ? p.types[0].type.name : "None";
   result.abilities = []
+
+  console.log(result)
 
   p.abilities.forEach(a => {
     result.abilities.push({ name: a.ability.name, is_hidden: a.is_hidden })
