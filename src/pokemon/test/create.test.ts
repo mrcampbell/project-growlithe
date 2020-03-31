@@ -1,4 +1,4 @@
-import { create } from "./create";
+import { create } from "../create";
 
 describe("PokemonCreate", function () {
   it("creates correctly", async function () {

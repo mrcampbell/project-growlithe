@@ -44,8 +44,6 @@ export class Battle {
     result.allyTurnResult.TurnType = allyTurn.type;
     result.enemyTurnResult.TurnType = enemyTurn.type;
 
-    console.log(allyTurn, enemyTurn);
-
     result.allyTurnResult = Battle.getUserTurnResult(
       allyTurn,
       this.ally,
@@ -99,6 +97,8 @@ export class Battle {
     defender: BattleMask,
     move: Move
   ): MoveResult {
+
+    console.log(attacker.name + ' used ' + move.name)
     return {
       damageToAttacker: Battle.calculateDamageToAttacker(
         attacker,
@@ -149,7 +149,7 @@ export class Battle {
     }
 
     if (randomModifier > 100 || randomModifier < 85) {
-      throw "random modifier out of range (85..100 inclusive)"
+      throw "random modifier out of range (85..100 inclusive): " + randomModifier
     }
 
     // todo: highest modifier (85.."100") is off
@@ -163,7 +163,6 @@ export class Battle {
     const typeAdvantageTwo = getTypeAdvantage(moveType, defenderTypeTwo)
     const typeAdvantage = (typeAdvantageOne * typeAdvantageTwo);
     const modifier = critical * (randomModifier/100) * stab * typeAdvantage;
-    console.log({critical, randomModifier, stab, typeAdvantage, modifier})
     return Math.round(initial * modifier);
   }
 
@@ -181,11 +180,22 @@ export class Battle {
     defender: BattleMask,
     move: Move
   ): BattleStatGroup {
+    const result = {
+      attack: 0,
+      defense: 0,
+      special_attack: 0,
+      special_defense: 0,
+      speed: 0,
+      accuracy: 0,
+      evasion: 0,
+    } as BattleStatGroup;
     if (move.stat_chance === 0 && move.stat_changes.length > 0) {
-      console.log("yep");
+      move.stat_changes.forEach(sc => {
+        console.log(sc, sc.stat.name, sc.change)
+        result[sc.stat.name] += sc.change
+      })
     }
-
-    return {} as BattleStatGroup;
+    return result;
   }
 
   static calculateStatChangeToAttacker(

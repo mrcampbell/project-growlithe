@@ -1,4 +1,4 @@
-import { HP } from "./types";
+import { HP } from "../types";
 
 describe("test HP functions and limits", function() {
   it("constructor without `current` works correctly", function() {
