@@ -1,20 +1,43 @@
 import { randBetweenInclusive } from "../utils/random"
 import id from "../utils/id";
 import shuffle from "../utils/shuffle";
-import { getBreed } from "../static/breed";
+import { getBreed, getAllLearnableMovesForBreed } from "../static/breed";
 import { Type } from "./elementaltype";
+import { Breed, Move } from "./types";
 const MAX_IV = 15;
 
-export async function create(breedID, level, versionGroup) {
-  let breed;
+export async function create(breedID: number, level: number, versionGroup: string, move_overrides?: number[]) {
+  let breed: Breed;
   return new Promise(async (resolve, reject) => {
 
-    await getBreed(breedID, versionGroup).then(b => breed = b).catch(err => {
+    await getBreed(breedID, versionGroup)
+    .then(b => breed = b)
+    .catch(err => {
       console.log(err)
       reject(err)
     }) // todo ??
 
-    const moves = getRandomMoves(breed, level)
+    let moves: number[] = [];
+    const moveOverridesProvided = move_overrides && move_overrides.length > 0;
+    if (moveOverridesProvided) {
+      const learnableMoves = getAllLearnableMovesForBreed(breedID, versionGroup);
+      console.log(learnableMoves)
+
+      move_overrides.forEach(mo => {
+        learnableMoves.forEach(lm => {
+          if (mo === lm.id) {
+            moves.push(mo)
+            // todo: break?
+          }
+        })
+      })
+    } else { 
+      moves = getRandomMoves(breed, level)
+    }
+
+    if (moveOverridesProvided && moves.length === 0) {
+      throw "unlearnable moves provided as overrides"
+    }
     
     const iv = {
       hp: randBetweenInclusive(1, MAX_IV),
@@ -42,9 +65,6 @@ export async function create(breedID, level, versionGroup) {
       special_defense: calcStat(level, breed.stats.special_defense, iv.special_defense, ev.special_defense),
       speed: calcStat(level, breed.stats.speed, iv.speed, ev.speed),
     }
-
-    console.log(breed.type_one)
-
     const p = {
       id: id('p'),
       breed_id: breedID,

@@ -24,7 +24,7 @@ export interface Breed {
 }
 
 export interface MoveLearn {
-  id: string;
+  id: number;
   name: string;
   method: string;
   level: string;

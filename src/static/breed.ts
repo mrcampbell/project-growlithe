@@ -49,17 +49,21 @@ function summarizeRawBreed(p: any): Breed {
   return result
 }
 
-function getMovesFromRawBreed(p, version_group): MoveLearn[] {
+export function getAllLearnableMovesForBreed(breedID, version_group): MoveLearn[] {
+  const breed = getBreedFromFile(breedID)
+  return getMovesFromRawBreed(breed, version_group)
+}
+
+function getMovesFromRawBreed(breed, version_group): MoveLearn[] {
   let moves = [];
   const moveNumberRE = /move\/(\d+)\//
   let matches = [];
-  p.moves.forEach(m => {
+  breed.moves.forEach(m => {
     m.version_group_details.forEach(vgd => {
       if (vgd.version_group.name === version_group) {
 
         matches = moveNumberRE.exec(m.move.url)
         let id = 0;
-        let url = '';
         if (matches.length > 1) {
           id = parseInt(matches[1])
         }

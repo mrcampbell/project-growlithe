@@ -6,4 +6,9 @@ describe("PokemonCreate", function () {
     console.log(pokemon)
     // expect(pokemon.current).toEqual(40)
   });
+  it("creates with move overrides correctly", async function () {
+    const pokemon = await create(25, 15, "yellow", [38, 86, 92, 129])
+    console.log(pokemon)
+    // expect(pokemon.current).toEqual(40)
+  });
 });
