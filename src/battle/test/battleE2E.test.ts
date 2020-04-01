@@ -1,27 +1,34 @@
 import { charmeleon, ivysaur } from "./sample-data";
-import { Battle } from "../battle";
+import { BattleService } from "../battle";
 import { UserTurnType } from "../types";
+import { getBattleMask } from "../battlemask";
 
 // note: this is seeded randoms
 describe("Battle", function () {
   it("plays out correctly", async function () {
-    const battle = new Battle(charmeleon, ivysaur)
-    await battle.initialize()
-    let result = battle.processRound(
+
+    let allyBattleMask = await getBattleMask(charmeleon);
+    let enemyBattleMask = await getBattleMask(ivysaur);
+
+    let result = BattleService.processRound(
+      allyBattleMask,
       { type: UserTurnType.ATTACK, input: { MoveIndex: 0 } }, // rage
-      { type: UserTurnType.ATTACK, input: { MoveIndex: 0 } } // vine whip
+      enemyBattleMask,
+      { type: UserTurnType.ATTACK, input: { MoveIndex: 0 } }, // vine whip
     )
 
-    expect(battle.ally.hp.current).toEqual(59)
-    expect(battle.enemy.hp.current).toEqual(59)
+    expect(result.ally.hp.current).toEqual(59)
+    expect(result.enemy.hp.current).toEqual(59)
 
-    result = battle.processRound(
+    result = BattleService.processRound(
+      result.ally,
       { type: UserTurnType.ATTACK, input: { MoveIndex: 1 } }, // ember
-      { type: UserTurnType.ATTACK, input: { MoveIndex: 2 } } // growl
+      result.enemy,
+      { type: UserTurnType.ATTACK, input: { MoveIndex: 2 } }, // growl
     )
 
-    expect(battle.ally.stat_deltas.attack).toEqual(-1);
+    expect(result.ally.stat_deltas.attack).toEqual(-1);
 
-    console.log(JSON.stringify(battle.ally.stat_deltas, null, 2))
+    console.log(JSON.stringify(result.ally.stat_deltas, null, 2))
   });
 })

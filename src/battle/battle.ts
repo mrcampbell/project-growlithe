@@ -1,7 +1,7 @@
 import { UserTurn, UserTurnType, AttackInput } from "./types";
 import { Pokemon, Move, ItemUsed, StatGroup } from "../pokemon/types";
 import { getBattleMask, BattleMask, BattleStatGroup } from "./battlemask";
-import { Type, TypeAdvantage, getTypeAdvantage } from '../pokemon/elementaltype';
+import { Type, getTypeAdvantage } from '../pokemon/elementaltype';
 import { randBetweenInclusive } from "../utils/random";
 
 export class UserTurnResult {
@@ -24,51 +24,51 @@ export class RoundTurnResult {
   allyMovesFirst: boolean;
   allyTurnResult: UserTurnResult;
   enemyTurnResult: UserTurnResult;
-}
-
-export class Battle {
   ally: BattleMask;
   enemy: BattleMask;
-  constructor(private pAlly: Pokemon, private pEnemy: Pokemon) { }
+}
 
-  async initialize(): Promise<any> {
-    this.ally = await getBattleMask(this.pAlly);
-    this.enemy = await getBattleMask(this.pEnemy);
-  }
+export class BattleService {
+  constructor() { }
 
-  processRound(allyTurn: UserTurn, enemyTurn: UserTurn): RoundTurnResult {
+  public static processRound(allyBattleMask: BattleMask, allyTurn: UserTurn, enemyBattleMask: BattleMask, enemyTurn: UserTurn): RoundTurnResult {
     const result = {} as RoundTurnResult;
 
-    result.allyMovesFirst = Battle.getAllyMovesFirst(this.ally, this.enemy, allyTurn, enemyTurn)
+    result.allyMovesFirst = BattleService.getAllyMovesFirst(allyBattleMask, enemyBattleMask, allyTurn, enemyTurn)
 
-    result.allyTurnResult = Battle.getUserTurnResult(
+    result.allyTurnResult = BattleService.getUserTurnResult(
       allyTurn,
-      this.ally,
-      this.enemy
+      allyBattleMask,
+      enemyBattleMask
     );
-    result.enemyTurnResult = Battle.getUserTurnResult(
+    result.enemyTurnResult = BattleService.getUserTurnResult(
       enemyTurn,
-      this.enemy,
-      this.ally
+      enemyBattleMask,
+      allyBattleMask,
     );
 
-    this.applyRoundResult(result);
-    console.log(this.ally.hp, this.enemy.hp)
+    const {ally, enemy} = BattleService.applyRoundResult(result, allyBattleMask, enemyBattleMask);
+    result.ally = ally;
+    result.enemy = enemy;
+
     return result;
   }
 
-  // TODO: Make external service.  But temporary workaround
-  private applyRoundResult(result: RoundTurnResult) {
+  private static applyRoundResult(result: RoundTurnResult, ally: BattleMask, enemy: BattleMask) {
     if (result.allyMovesFirst) {
-      this.applyUserTurnResult(result.allyTurnResult, true)
-      this.applyUserTurnResult(result.enemyTurnResult, false)
+      let {ally: allyAfterFirst, enemy: enemyAfterFirst} = BattleService.applyUserTurnResult(result.allyTurnResult, true, ally, enemy)
+      return BattleService.applyUserTurnResult(result.enemyTurnResult, false, allyAfterFirst, enemyAfterFirst)
     } else {
-      this.applyUserTurnResult(result.enemyTurnResult, false)
-      this.applyUserTurnResult(result.allyTurnResult, true)
+      let {ally: allyAfterFirst, enemy: enemyAfterFirst} = BattleService.applyUserTurnResult(result.enemyTurnResult, false, ally, enemy)
+      return BattleService.applyUserTurnResult(result.allyTurnResult, true, ally, enemy)
     }
   }
 
-  private applyUserTurnResult(result: UserTurnResult, attackerIsAlly: boolean) {
+  private static applyUserTurnResult(result: UserTurnResult, attackerIsAlly: boolean, allyBattleMask: BattleMask, enemyBattleMask: BattleMask) {
+    const response = {
+      ally: allyBattleMask,
+      enemy: enemyBattleMask,
+    }
     let attackerKey, defenderKey;
 
     if (attackerIsAlly) {
@@ -80,26 +80,26 @@ export class Battle {
     }
 
     if (result.TurnType === UserTurnType.ATTACK) {
-      this[defenderKey].hp.change(-result.MoveResult.damageToDefender)
+      response[defenderKey].hp.change(-result.MoveResult.damageToDefender)
       result.MoveResult.statChangesToDefender;
 
       // todo: eeegh.
       for (let key of Object.keys(result.MoveResult.statChangesToDefender)) {
-        this[defenderKey].stat_deltas[key] += result.MoveResult.statChangesToDefender[key];
+        response[defenderKey].stat_deltas[key] += result.MoveResult.statChangesToDefender[key];
 
         // todo: debug
         let delta = result.MoveResult.statChangesToDefender[key]
-        if (delta > 0) {
-          console.log(`${defenderKey}'s ${key} went down by ${delta} points`)
+        if (delta != 0) {
+          console.log(`${defenderKey}'s ${key} went ${delta > 0 ? 'up' : 'down'} by ${delta} points`)
         }
         // end debug
       }
     }
 
+    return response
   }
 
-
-  static getUserTurnResult(
+  private static getUserTurnResult(
     turn: UserTurn,
     attacker: BattleMask,
     defender: BattleMask
@@ -110,7 +110,7 @@ export class Battle {
         {
           let moveInput = turn.input as AttackInput;
           let moveUsed = attacker.moves[moveInput.MoveIndex]; // todo: error check
-          result.MoveResult = Battle.getMoveResult(
+          result.MoveResult = BattleService.getMoveResult(
             attacker,
             defender,
             moveUsed
@@ -135,7 +135,7 @@ export class Battle {
     return result;
   }
 
-  static getAllyMovesFirst(ally: BattleMask, enemy: BattleMask, allyTurn: UserTurn, enemyTurn: UserTurn): boolean {
+  private static getAllyMovesFirst(ally: BattleMask, enemy: BattleMask, allyTurn: UserTurn, enemyTurn: UserTurn): boolean {
     if (allyTurn.type === UserTurnType.USE_ITEM) {
       return true
     }
@@ -144,19 +144,19 @@ export class Battle {
     return ally.stats().speed > enemy.stats().speed;
   }
 
-  static getMoveResult(
+  private static getMoveResult(
     attacker: BattleMask,
     defender: BattleMask,
     move: Move
   ): MoveResult {
     console.log(attacker.name + ' used ' + move.name)
     return {
-      damageToAttacker: Battle.calculateDamageToAttacker(
+      damageToAttacker: BattleService.calculateDamageToAttacker(
         attacker,
         defender,
         move
       ),
-      damageToDefender: Battle.calculateDamageToDefender(
+      damageToDefender: BattleService.calculateDamageToDefender(
         move.power,
         move.type,
         attacker.type_one,
@@ -169,12 +169,12 @@ export class Battle {
         randBetweenInclusive(0, 100),
         randBetweenInclusive(85, 100),
       ), // todo: add special atk/def if special
-      statChangesToAttacker: Battle.calculateStatChangeToAttacker(
+      statChangesToAttacker: BattleService.calculateStatChangeToAttacker(
         attacker,
         defender,
         move
       ),
-      statChangesToDefender: Battle.calculateStatChangeToDefender(
+      statChangesToDefender: BattleService.calculateStatChangeToDefender(
         attacker,
         defender,
         move
@@ -182,7 +182,7 @@ export class Battle {
     } as MoveResult;
   }
 
-  static calculateDamageToDefender(
+  private static calculateDamageToDefender(
     movePower: number,
     moveType: Type,
     attackerTypeOne: Type,
@@ -219,7 +219,7 @@ export class Battle {
   }
 
   // todo: calculate recoil
-  static calculateDamageToAttacker(
+  private static calculateDamageToAttacker(
     attacker: BattleMask,
     defender: BattleMask,
     move: Move
@@ -227,7 +227,7 @@ export class Battle {
     return 0;
   }
 
-  static calculateStatChangeToDefender(
+  private static calculateStatChangeToDefender(
     attacker: BattleMask,
     defender: BattleMask,
     move: Move
@@ -250,7 +250,8 @@ export class Battle {
     return result;
   }
 
-  static calculateStatChangeToAttacker(
+  // todo: this
+  private static calculateStatChangeToAttacker(
     attacker: BattleMask,
     defender: BattleMask,
     move: Move
