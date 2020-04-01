@@ -1,20 +1,18 @@
 import { charmeleon, ivysaur } from "./sample-data";
 import { Battle } from "../battle";
 import { UserTurnType, AttemptToRunInput } from "../types";
-import { BattleMask, getBattleMask } from "../battlemask";
 import { Type } from "../../pokemon/elementaltype";
 
 describe("Battle", function () {
   it("is created successfully", async function () {
     const battle = new Battle(charmeleon, ivysaur)
-
     await battle.initialize()
   });
 
   it("processes a round", async function() {
     const battle = new Battle(charmeleon, ivysaur);
     await battle.initialize();
-    const output = battle.getRoundResult(
+    const output = battle.processRound(
       // {type: UserTurnType.ATTACK, input: {MoveIndex: 0}}, // rage
       {type: UserTurnType.ATTACK, input: {MoveIndex: 1}}, // ember
       // {type: UserTurnType.ATTACK, input: {MoveIndex: 2}}, // growl
@@ -29,7 +27,7 @@ describe("Battle", function () {
   it("returns stat change when expected", async function() {
     const battle = new Battle(charmeleon, ivysaur);
     await battle.initialize();
-    const output = battle.getRoundResult(
+    const output = battle.processRound(
       {type: UserTurnType.ATTACK, input: {MoveIndex: 1}}, // ember
       {type: UserTurnType.ATTACK, input: {MoveIndex: 2}}, // growl
       );

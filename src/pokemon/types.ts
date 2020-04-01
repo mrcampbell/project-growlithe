@@ -87,7 +87,11 @@ export interface StatGroup {
 
 
 export class HP {
-  constructor(max: number, current?:number) {
+  
+  readonly max: number
+  private _current: number;
+
+  constructor(max: number, current?: number) {
     this.max = max;
     if (current) {
       this._current = current;
@@ -96,8 +100,6 @@ export class HP {
     }
   }
 
-  readonly max: number
-  _current: number;
   
   get current(): number {
     return this._current;

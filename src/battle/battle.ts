@@ -29,20 +29,17 @@ export class RoundTurnResult {
 export class Battle {
   ally: BattleMask;
   enemy: BattleMask;
-  constructor(private pAlly: Pokemon, private pEnemy: Pokemon) {}
+  constructor(private pAlly: Pokemon, private pEnemy: Pokemon) { }
 
   async initialize(): Promise<any> {
     this.ally = await getBattleMask(this.pAlly);
     this.enemy = await getBattleMask(this.pEnemy);
   }
 
-  getRoundResult(allyTurn: UserTurn, enemyTurn: UserTurn): RoundTurnResult {
-    const result = {
-      allyTurnResult: {} as UserTurnResult,
-      enemyTurnResult: {} as UserTurnResult
-    } as RoundTurnResult;
-    result.allyTurnResult.TurnType = allyTurn.type;
-    result.enemyTurnResult.TurnType = enemyTurn.type;
+  processRound(allyTurn: UserTurn, enemyTurn: UserTurn): RoundTurnResult {
+    const result = {} as RoundTurnResult;
+
+    result.allyMovesFirst = Battle.getAllyMovesFirst(this.ally, this.enemy, allyTurn, enemyTurn)
 
     result.allyTurnResult = Battle.getUserTurnResult(
       allyTurn,
@@ -55,8 +52,52 @@ export class Battle {
       this.ally
     );
 
+    this.applyRoundResult(result);
+    console.log(this.ally.hp, this.enemy.hp)
     return result;
   }
+
+  // TODO: Make external service.  But temporary workaround
+  private applyRoundResult(result: RoundTurnResult) {
+    if (result.allyMovesFirst) {
+      this.applyUserTurnResult(result.allyTurnResult, true)
+      this.applyUserTurnResult(result.enemyTurnResult, false)
+    } else {
+      this.applyUserTurnResult(result.enemyTurnResult, false)
+      this.applyUserTurnResult(result.allyTurnResult, true)
+    }
+  }
+
+  private applyUserTurnResult(result: UserTurnResult, attackerIsAlly: boolean) {
+    let attackerKey, defenderKey;
+
+    if (attackerIsAlly) {
+      attackerKey = 'ally'; // DANGEROUS.  This might be better done another way
+      defenderKey = 'enemy';
+    } else {
+      attackerKey = 'enemy';
+      defenderKey = 'ally';
+    }
+
+    if (result.TurnType === UserTurnType.ATTACK) {
+      this[defenderKey].hp.change(-result.MoveResult.damageToDefender)
+      result.MoveResult.statChangesToDefender;
+
+      // todo: eeegh.
+      for (let key of Object.keys(result.MoveResult.statChangesToDefender)) {
+        this[defenderKey].stat_deltas[key] += result.MoveResult.statChangesToDefender[key];
+
+        // todo: debug
+        let delta = result.MoveResult.statChangesToDefender[key]
+        if (delta > 0) {
+          console.log(`${defenderKey}'s ${key} went down by ${delta} points`)
+        }
+        // end debug
+      }
+    }
+
+  }
+
 
   static getUserTurnResult(
     turn: UserTurn,
@@ -89,7 +130,18 @@ export class Battle {
         }
         break;
     }
+
+    result.TurnType = turn.type;
     return result;
+  }
+
+  static getAllyMovesFirst(ally: BattleMask, enemy: BattleMask, allyTurn: UserTurn, enemyTurn: UserTurn): boolean {
+    if (allyTurn.type === UserTurnType.USE_ITEM) {
+      return true
+    }
+
+    // todo: add move priority,
+    return ally.stats().speed > enemy.stats().speed;
   }
 
   static getMoveResult(
@@ -97,7 +149,6 @@ export class Battle {
     defender: BattleMask,
     move: Move
   ): MoveResult {
-
     console.log(attacker.name + ' used ' + move.name)
     return {
       damageToAttacker: Battle.calculateDamageToAttacker(
@@ -162,7 +213,8 @@ export class Battle {
     const typeAdvantageOne = getTypeAdvantage(moveType, defenderTypeOne)
     const typeAdvantageTwo = getTypeAdvantage(moveType, defenderTypeTwo)
     const typeAdvantage = (typeAdvantageOne * typeAdvantageTwo);
-    const modifier = critical * (randomModifier/100) * stab * typeAdvantage;
+    const modifier = critical * (randomModifier / 100) * stab * typeAdvantage;
+    console.log({ modifier, critical, randomModifier, stab, typeAdvantage })
     return Math.round(initial * modifier);
   }
 

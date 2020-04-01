@@ -2,10 +2,10 @@ import { HP, Pokemon } from "../pokemon/types";
 import { getBattleMask } from "./battlemask";
 
 export enum UserTurnType {
-  ATTACK,
-  USE_ITEM,
-  SWAP_POKEMON,
-  ATTEMPT_TO_RUN
+  ATTACK = "attack",
+  USE_ITEM= "bag",
+  SWAP_POKEMON= "pokemon",
+  ATTEMPT_TO_RUN= "run",
 }
 
 export interface AttackInput {

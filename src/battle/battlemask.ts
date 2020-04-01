@@ -153,7 +153,7 @@ export async function getBattleMask(pokemon: Pokemon): Promise<BattleMask> {
       await moveService.getMove(pokemon.move_three_id),
       await moveService.getMove(pokemon.move_four_id)
     ],
-    pokemon.stats as BattleStatGroup,
+    {accuracy: 0, evasion: 0, ...pokemon.stats} as BattleStatGroup,
     pokemon.type_one,
     pokemon.type_two,
   );
